@@ -1,0 +1,55 @@
+struct sockaddr_un {
+    sa_family_t sun_family;   // Address family: AF_UNIX
+    char        sun_path[108]; // Filesystem path to the socket
+}
+
+struct epoll_event {
+    uint32_t     events;   // Epoll events you are interested in or returned
+    epoll_data_t data;     // User data (can store fd or pointer)
+};
+typedef union epoll_data {
+    void        *ptr;
+    int          fd;
+    uint32_t     u32;
+    uint64_t     u64;
+} epoll_data_t;
+
+//common.c.Special socket address structure used for link-layer (raw) sockets on Linux.
+struct sockaddr_ll { (demaon.c)
+    unsigned short sll_family;   // always AF_PACKET
+    unsigned short sll_protocol; // ETH_P_*
+    int            sll_ifindex;  // numeric index of the interface
+    unsigned short sll_hatype;   // hardware type (Ethernet = 1)
+    unsigned char  sll_pkttype;  // packet type
+    unsigned char  sll_halen;    // length of address (6 for MAC)
+    unsigned char  sll_addr[8];  // MAC address (up to 8 bytes, only first 6 used for Ethernet)
+};
+
+//common.c 
+//Used to enumerate all network interfaces on the machine.
+struct ifaddrs {
+    struct ifaddrs  *ifa_next;    // pointer to next interface in the list
+    char            *ifa_name;    // interface name (e.g., "eth0", "lo")
+    unsigned int     ifa_flags;   // interface flags (IFF_UP, IFF_LOOPBACK, etc.)
+    struct sockaddr *ifa_addr;    // interface address (can be AF_INET, AF_PACKET, etc.)
+    struct sockaddr *ifa_netmask; // netmask
+    struct sockaddr *ifa_broadaddr;// broadcast address (optional)
+    void            *ifa_data;    // platform-specific data
+};
+
+//common.c. Standard linux structure that allows to receive both the data (struct iovec) and metadata (source address e.g.). Needed if you want to use recvmsg() function
+struct msghdr {
+    void         *msg_name;       // optional address (e.g., sockaddr_ll for raw sockets)
+    socklen_t     msg_namelen;    // size of *msg_name
+    struct iovec *msg_iov;        // scatter/gather array (where data goes)
+    size_t        msg_iovlen;     // number of iovecs
+    void         *msg_control;    // ancillary data (for control messages)
+    size_t        msg_controllen; // length of control buffer
+    int           msg_flags;      // flags set by recvmsg()
+};
+
+//common.c.Really simple — it’s just a pointer to a buffer and its length. Used for writing/sending data into/from buffers. 
+struct iovec {
+    void   *iov_base;  // Starting address of the buffer
+    size_t  iov_len;   // Length of the buffer in bytes
+};
