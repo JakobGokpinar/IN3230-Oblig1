@@ -364,3 +364,20 @@ struct sockaddr_ll* find_mac_for_mip(uint8_t mip_addr) {
 }
 
 /* end mip_daemon.c */
+
+
+
+
+/*
+ping_client: mip_addr : 8 bits
+                *msg: resten av greie
+
+ether_frame(
+    mip_header(
+        arp_header(
+        )
+    )
+)
+
+
+*/
