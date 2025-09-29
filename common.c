@@ -128,12 +128,10 @@ int send_mip_packet(struct ifs_data *interfaces, uint8_t src_mip, uint8_t dst_mi
         send_addr->sll_ifindex = interfaces->addr[0].sll_ifindex;
     }
 
-
     msg.msg_name = send_addr;
     msg.msg_namelen = sizeof(struct sockaddr_ll);
     msg.msg_iov = &msgvec;
     msg.msg_iovlen = 1;
-
 
     printf("Attempting to send MIP packet: src=%d, dst=%d, type=0x%02x, len=%zu via if=%d\n",
         src_mip, dst_mip, sdu_type, sdu_len, send_addr->sll_ifindex);
@@ -183,8 +181,7 @@ int recv_mip_frame(struct ifs_data* interfaces, struct ether_frame* eframe, stru
     }
 
     if (source_node)
-        *source_node = from;  // copy received interface info back to caller
-    
+        *source_node = from;  // copy received interface info back to caller 
     return rc;
 }
 
