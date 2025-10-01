@@ -194,9 +194,6 @@ int main(int argc, char *argv[]) {
                         }
 
                     } 
-                    /*else {
-                        printf("[Daemon] PING not for us (dst=%d, we are %d)\n", mip_hdr->dst, my_mip_addr);
-                    }*/
                 } else {
                     printf("Unknown sdu type: 0x%02x\n", mip_hdr->sdu_type);
                 }
@@ -273,11 +270,8 @@ int main(int argc, char *argv[]) {
     }
 }
 
+
 void update_arp_table(uint8_t mip_addr, uint8_t* mac_addr, int if_index) {
-   /* printf("[ARP] Learned MIP %d -> MAC %02x:%02x:%02x:%02x:%02x:%02x via if %d\n",
-        mip_addr,
-        mac_addr[0], mac_addr[1], mac_addr[2], mac_addr[3], mac_addr[4], mac_addr[5],
-        if_index);*/
 
     // Check if MIP is already in the table
     for (int i = 0; i < arp_table_size; i++) {
@@ -288,7 +282,6 @@ void update_arp_table(uint8_t mip_addr, uint8_t* mac_addr, int if_index) {
             return;
         }
     }
-
     // Add new entry if not found
     if (arp_table_size < MAX_ARP_TABLE_ENTRIES) {
         arp_table[arp_table_size].mip_addr = mip_addr;
