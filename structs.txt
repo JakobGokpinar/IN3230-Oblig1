@@ -1,3 +1,6 @@
+Contains all the structs used in the project.
+These are notes for me to remember how to use each struct while coding
+
 struct sockaddr_un {
     sa_family_t sun_family;   // Address family: AF_UNIX
     char        sun_path[108]; // Filesystem path to the socket

@@ -20,7 +20,7 @@ int main(int argc, char *argv[]) {
 	char *user_msg  = argv[2];
 	uint8_t dst_mip = (uint8_t)atoi(argv[3]);
 
-    printf("<info> I am ping client with socket: %s, msg: %s, host destination: %u\n", unix_path, user_msg, dst_mip);
+    printf("<%s> I am ping client with msg: %s and host dst addr %u\n", unix_path, user_msg, dst_mip);
 
 	int socketfd;
 	struct sockaddr_un addr;
@@ -104,9 +104,9 @@ int main(int argc, char *argv[]) {
 	reply_msg = (char*)(in_buf + 1);
 
 	if (strncmp(reply_msg, "PONG:", 5) == 0) {
-		printf("from %u: %s (%.2f ms)\n", src_mip, reply_msg, rtt_ms); //print details
+		printf("[Client] Got a Msg from host %u %s (%.2f ms)\n", src_mip, reply_msg, rtt_ms); //print details
 	} else {
-		printf("unexpected reply from %u: %s (%.2f ms)\n", src_mip, reply_msg, rtt_ms); //unexpected msg
+		printf("unexpected reply from host %u %s (%.2f ms)\n", src_mip, reply_msg, rtt_ms); //unexpected msg
 	}
 
 	close(socketfd);

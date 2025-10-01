@@ -96,13 +96,7 @@ void get_mac_from_interfaces(struct ifs_data *ifs);
 void init_ifs(struct ifs_data *ifs, int rsock);
 int create_raw_socket(void);
 
-//int send_arp_request(struct ifs_data *ifs);
-//int handle_arp_packet(struct ifs_data *ifs);
-//int send_arp_response(struct ifs_data *ifs, struct sockaddr_ll*, struct ether_frame *eframe);
-
 int send_mip_packet(struct ifs_data*, uint8_t src_mip, uint8_t dst_mip, uint8_t sdu_type, size_t sdu_len, const uint8_t *sdu, struct sockaddr_ll*);
-
-//int handle_mip_packet(struct ifs_data *);
 
 int recv_mip_frame(struct ifs_data *ifs, struct ether_frame*, struct sockaddr_ll*);
 void debug_interfaces(struct ifs_data *interfaces);

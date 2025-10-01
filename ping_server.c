@@ -9,7 +9,7 @@ int main(int argc, char *argv[]) {
 	}
 
 	char *unix_path = argv[1]; //socket_lower e.g. usockB
-    printf("<info> I am host server with socket: %s\n", unix_path);
+    printf("<%s> I am a host server with %s\n", unix_path, unix_path);
 
 	int serverfd;
 	struct sockaddr_un addr;
@@ -57,19 +57,37 @@ int main(int argc, char *argv[]) {
 		buf[nbytes] = '\0';
 		char *msg = (char *)(buf + 1);
 
-		printf("[PingServer] Got PING from %u: %s\n", src_addr, msg);
+		printf("[Server] Got a PING from host %u: %s\n", src_addr, msg);
 
 		// Build reply
         char reply[1500];
-        snprintf(reply, sizeof(reply), "PONG:%s", msg);
+		int reply_len; 
+
+		if (strncmp(msg, "PING:", 5) == 0) { 
+            reply_len = snprintf(reply, sizeof(reply), "PONG:%s", msg + 5); // Skip the "PING:" prefix
+        } else {       
+            reply_len = snprintf(reply, sizeof(reply), "PONG:%s", msg); // No PING prefix, just echo with PONG
+        }
+
+		if (reply_len < 0 || reply_len >= (int)sizeof(reply)) {
+            printf("[Server] Reply too long\n");
+            continue;
+        }
 
         // First byte must be destination MIP (the original sender)
         uint8_t output_buf[1500];
         output_buf[0] = src_addr;
-        strcpy((char*)(output_buf + 1), reply);
+		memcpy(output_buf + 1, reply, reply_len + 1); // +1 for null terminator
 
-        // Send back to daemon
-        send(serverfd, output_buf, strlen(reply)+1, 0);
+        //printf("[PingServer] Sending back to MIP %u: %s\n", src_addr, reply);
+
+ 
+        int sent = send(serverfd, output_buf, reply_len + 2, 0); // +1 MIP byte, +1 null
+        if (sent < 0) {
+            perror("send reply");
+        } else {
+            printf("[Server] Sent %d bytes successfully to host %u msg %s\n", sent, src_addr, reply);
+        }
 	}
     close(serverfd);
     return 0;

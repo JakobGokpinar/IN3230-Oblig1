@@ -1,4 +1,5 @@
 # Socket System Calls Cheat Sheet
+(My own notes for using different functions in socket programming)
 
 ### send() vs write()
 - `write()` → generic system call, works on any file descriptor.

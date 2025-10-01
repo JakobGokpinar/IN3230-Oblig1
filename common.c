@@ -58,8 +58,7 @@ int create_raw_socket(void)
 }
 
 
-/* Convenience: send a MIP packet (constructs ether_frame with MIP header in payload)
-   sdu is raw bytes (not padded); sdu_len is bytes. Returns bytes sent or -1. 
+/* The only function for sending ARP Req/Ress. Because why not? 
 
 * Unifying function for all outgoing MIP traffic (ARP responses, SDU_PING)
 * @param interfaces: contains raw socket
@@ -79,20 +78,21 @@ int send_mip_packet(struct ifs_data *interfaces, uint8_t src_mip, uint8_t dst_mi
     int rc;
 
     // 1. Build the Ethernet Frame
+
     // Set destination MAC address
     if (dst_node) {
         memcpy(eframe.dst_addr, dst_node->sll_addr, 6);
-        printf("Sending to MAC: %02x:%02x:%02x:%02x:%02x:%02x via if %d\n",
-            dst_node->sll_addr[0], dst_node->sll_addr[1], dst_node->sll_addr[2],
-            dst_node->sll_addr[3], dst_node->sll_addr[4], dst_node->sll_addr[5],
-            dst_node->sll_ifindex);
+        printf("Sending to MAC: %02x:%02x:%02x:%02x:%02x:%02x\n",
+            dst_node->sll_addr[0], dst_node->sll_addr[1], dst_node->sll_addr[2], dst_node->sll_addr[3], dst_node->sll_addr[4], dst_node->sll_addr[5]
+        );
     } else {
         //Fall back to Broadcast
         uint8_t broadcast[6] = ETH_BROADCAST;
         memcpy(eframe.dst_addr, broadcast, 6);
     }
+
     // Source Mac address
-    memcpy(eframe.src_addr, interfaces->addr[0].sll_addr, 6); //why addr[0].sll_addr?
+    memcpy(eframe.src_addr, interfaces->addr[0].sll_addr, 6);
     // Ethertype for MIP
     eframe.eth_proto[0] = (ETH_P_MIP >> 8) & 0xFF;
     eframe.eth_proto[1] = ETH_P_MIP & 0xFF;
@@ -119,11 +119,10 @@ int send_mip_packet(struct ifs_data *interfaces, uint8_t src_mip, uint8_t dst_mi
     if (dst_node) {
         send_addr = dst_node;
     } else {
-        // For broadcast, use first interface
         send_addr = &interfaces->addr[0];
     }
 
-    // CRITICAL FIX: Ensure interface index is set correctly
+    // Ensure interface index is set correctly
     if (send_addr->sll_ifindex == 0) {
         send_addr->sll_ifindex = interfaces->addr[0].sll_ifindex;
     }
@@ -133,8 +132,11 @@ int send_mip_packet(struct ifs_data *interfaces, uint8_t src_mip, uint8_t dst_mi
     msg.msg_iov = &msgvec;
     msg.msg_iovlen = 1;
 
-    printf("Attempting to send MIP packet: src=%d, dst=%d, type=0x%02x, len=%zu via if=%d\n",
-        src_mip, dst_mip, sdu_type, sdu_len, send_addr->sll_ifindex);
+    if (sdu_type == SDU_MIP) {
+        printf("MIP packet: src=%d, dst=%d, sdu_type=0x%02x(arpreq /res), len=%zu via if=%d\n", src_mip, dst_mip, sdu_type, sdu_len, send_addr->sll_ifindex);
+    } else {
+        printf("MIP packet: src=%d, dst=%d, sdu_type=0x%02x(pingmsg), len=%zu via if=%d\n", src_mip, dst_mip, sdu_type, sdu_len, send_addr->sll_ifindex);
+    }
 
     rc = sendmsg(interfaces->rsock, &msg, 0);
     if (rc == -1) {
@@ -144,7 +146,7 @@ int send_mip_packet(struct ifs_data *interfaces, uint8_t src_mip, uint8_t dst_mi
             send_addr->sll_family, send_addr->sll_ifindex);
         return -1;
     }
-    printf("send_mip_packet successfully sent %d bytes\n", rc);
+    printf("Successfully sent %d bytes\n", rc);
     return rc;
 }
 
@@ -190,9 +192,9 @@ void debug_interfaces(struct ifs_data *interfaces) {
     printf("Number of interfaces found: %d\n", interfaces->ifn);
     
     for (int i = 0; i < interfaces->ifn; i++) {
-        printf("Interface %d:\n", i);
-        printf("  Family: %d\n", interfaces->addr[i].sll_family);
-        printf("  Protocol: 0x%04x\n", interfaces->addr[i].sll_protocol);
+        printf("Interface %d:\n", i); //Family: 17 = AF_PACKET
+        printf("  Family: %d\n", interfaces->addr[i].sll_family); //The protocol number (set to ETH_P_MIP = 0x88B5 when creating the socket)
+        printf("  Protocol: 0x%04x\n", interfaces->addr[i].sll_protocol); //The kernel's ID for this network interface (usually 1 for loopback, 2+ for real interfaces)
         printf("  Interface Index: %d\n", interfaces->addr[i].sll_ifindex);
         printf("  MAC Address: ");
         print_mac_addr(interfaces->addr[i].sll_addr, 6);
